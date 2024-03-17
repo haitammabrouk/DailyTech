@@ -6,6 +6,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import me.haitam.tech.jwt.JwtService;
+import me.haitam.tech.user.Role;
 import me.haitam.tech.user.User;
 import me.haitam.tech.user.UserRepository;
 
@@ -28,21 +29,32 @@ public class AuthenticationService {
         this.authenticationManager = authenticationManager;
     }
 
-    public AuthenticationResponse register(User request) {
-
-        User user = new User();
-        user.setUsername(request.getUsername());
-        user.setPassword(passwordEncoder.encode(request.getPassword()));
-
-
-        user.setRole(request.getRole());
-
-        user = repository.save(user);
-
-        String token = jwtService.generateToken(user);
-
-        return new AuthenticationResponse(token);
+    public AuthenticationResponse register(User request){
+        boolean isEmailAlreadyExist = repository.findByEmail(request.getEmail()).isPresent();
+        boolean isUsernameAlreadyExist = repository.findByUsername(request.getUsername()).isPresent();
+    
+        if(isEmailAlreadyExist || isUsernameAlreadyExist){
+            return new AuthenticationResponse(isEmailAlreadyExist, isUsernameAlreadyExist);
+        } else {
+            User user = new User();
+            user.setUsername(request.getUsername());
+            user.setFirstname(request.getFirstname());
+            user.setLastname(request.getLastname());
+            user.setEmail(request.getEmail());
+            user.setPassword(request.getPassword());
+            user.setProfil(request.getProfil());
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+            user.setRole(Role.USER);
+            
+            user = repository.save(user);
+    
+            String token = jwtService.generateToken(user);
+    
+            return new AuthenticationResponse(token);
+        }
     }
+    
+    
 
     public AuthenticationResponse authenticate(User request) {
         authenticationManager.authenticate(

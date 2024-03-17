@@ -15,6 +15,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -33,10 +35,24 @@ public class User implements UserDetails {
     private long id;
 
     @Column
+    private String firstname;
+
+    @Column
+    private String lastname;
+
+    @Column
     private String username;
 
     @Column
+    @Email
+    private String email;
+
+    @Column
+    @Size(min = 8)
     private String password;
+
+    @Column
+    private String profil;
 
     @Enumerated(value = EnumType.STRING)
     Role role;
