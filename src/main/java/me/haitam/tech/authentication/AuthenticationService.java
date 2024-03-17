@@ -1,11 +1,13 @@
 package me.haitam.tech.authentication;
 
+import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import me.haitam.tech.jwt.JwtService;
+import me.haitam.tech.mail.EmailService;
 import me.haitam.tech.user.Role;
 import me.haitam.tech.user.User;
 import me.haitam.tech.user.UserRepository;
@@ -17,16 +19,20 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
+    private final EmailService emailService;
+
     private final AuthenticationManager authenticationManager;
 
     public AuthenticationService(UserRepository repository,
                                  PasswordEncoder passwordEncoder,
                                  JwtService jwtService,
-                                 AuthenticationManager authenticationManager) {
+                                 AuthenticationManager authenticationManager,
+                                 EmailService emailService) {
         this.repository = repository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.emailService = emailService;
     }
 
     public AuthenticationResponse register(User request){
@@ -47,9 +53,12 @@ public class AuthenticationService {
             user.setRole(Role.USER);
             
             user = repository.save(user);
-    
+
             String token = jwtService.generateToken(user);
-    
+
+            SimpleMailMessage mail = emailService.setEmail(request.getEmail(), request.getFirstname().substring(0, 1).toUpperCase() + request.getFirstname().substring(1));
+            emailService.sendEmail(mail);
+
             return new AuthenticationResponse(token);
         }
     }
